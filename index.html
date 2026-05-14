@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¿Cómo te sientes con tu dinero?</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple: #7F77DD;
+    --purple-dark: #3C3489;
+    --purple-light: #EEEDFE;
+    --coral: #D85A30;
+    --coral-light: #FAECE7;
+    --teal: #1D9E75;
+    --teal-light: #E1F5EE;
+    --text: #1a1a2e;
+    --text-muted: #6b6b8a;
+    --bg: #faf9ff;
+    --card: #ffffff;
+    --border: rgba(127,119,221,0.2);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background-image: radial-gradient(ellipse at 20% 20%, rgba(127,119,221,0.08) 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 80%, rgba(216,90,48,0.06) 0%, transparent 60%);
+  }
+
+  .container { width: 100%; max-width: 520px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Welcome */
+  .welcome-eyebrow {
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--purple); font-weight: 500; margin-bottom: 1rem;
+  }
+  .welcome-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 6vw, 38px);
+    line-height: 1.2; color: var(--text); margin-bottom: 1rem;
+  }
+  .welcome-desc {
+    font-size: 16px; color: var(--text-muted); line-height: 1.7; margin-bottom: 0.5rem;
+  }
+  .welcome-note {
+    font-size: 13px; color: var(--text-muted); margin-bottom: 2rem;
+    padding: 10px 14px; background: var(--purple-light);
+    border-radius: 8px; display: inline-block;
+  }
+  .btn-start {
+    display: block; width: 100%; padding: 16px;
+    background: var(--purple); color: white; border: none;
+    border-radius: 12px; font-size: 16px; font-weight: 500;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(127,119,221,0.35);
+  }
+  .btn-start:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(127,119,221,0.45); }
+  .btn-start:active { transform: scale(0.98); }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 2rem; }
+  .progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-label { font-size: 13px; color: var(--text-muted); }
+  .progress-steps { font-size: 13px; color: var(--purple); font-weight: 500; }
+  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--purple); border-radius: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+
+  /* Question */
+  .q-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(20px, 4vw, 26px);
+    line-height: 1.35; color: var(--text); margin-bottom: 0.4rem;
+  }
+  .q-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 1.5rem; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+  .opt-btn {
+    text-align: left; padding: 15px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px; background: var(--card);
+    cursor: pointer; font-size: 15px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.18s ease; line-height: 1.4;
+    position: relative; overflow: hidden;
+  }
+  .opt-btn::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--purple); transform: scaleY(0);
+    transition: transform 0.18s ease; border-radius: 0 2px 2px 0;
+  }
+  .opt-btn:hover { border-color: var(--purple); background: var(--purple-light); }
+  .opt-btn.selected { border-color: var(--purple); background: var(--purple-light); color: var(--purple-dark); }
+  .opt-btn.selected::before { transform: scaleY(1); }
+
+  /* Nav */
+  .nav { display: flex; justify-content: space-between; align-items: center; }
+  .btn-back {
+    font-size: 14px; color: var(--text-muted); background: none; border: none;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; padding: 8px 0;
+    transition: color 0.15s;
+  }
+  .btn-back:hover { color: var(--text); }
+  .btn-next {
+    padding: 11px 24px; background: var(--purple); color: white; border: none;
+    border-radius: 10px; font-size: 15px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    transition: all 0.18s; opacity: 0.35; pointer-events: none;
+    box-shadow: 0 3px 12px rgba(127,119,221,0.3);
+  }
+  .btn-next.ready { opacity: 1; pointer-events: all; }
+  .btn-next.ready:hover { transform: translateY(-1px); }
+
+  /* Result */
+  .result-profile {
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+    font-weight: 500; padding: 5px 14px; border-radius: 20px;
+    display: inline-block; margin-bottom: 1rem;
+  }
+  .result-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(24px, 5vw, 32px);
+    line-height: 1.25; margin-bottom: 0.75rem;
+  }
+  .result-desc { font-size: 15px; color: var(--text-muted); line-height: 1.75; margin-bottom: 1.75rem; }
+
+  .bars-section { margin-bottom: 1.75rem; }
+  .bars-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-name { font-size: 13px; color: var(--text-muted); min-width: 130px; }
+  .bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); width: 0%; }
+
+  .insights { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.75rem; }
+  .insight {
+    padding: 14px 16px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--card);
+  }
+  .insight-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px; }
+  .insight-val { font-size: 14px; color: var(--text); font-weight: 500; }
+
+  .btn-retry {
+    display: block; width: 100%; padding: 13px; background: none;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    font-size: 15px; cursor: pointer; color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  }
+  .btn-retry:hover { border-color: var(--purple); color: var(--purple); }
+
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Welcome -->
+  <div class="screen active" id="s-welcome">
+    <div class="welcome-eyebrow">Diagnóstico de bienestar financiero</div>
+    <h1 class="welcome-title">¿Cómo te sientes con tu dinero?</h1>
+    <p class="welcome-desc">Tus emociones también forman parte de tu bienestar financiero. Este pequeño diagnóstico puede ayudarte a entender cómo te relacionas con el dinero.</p>
+    <div class="divider"></div>
+    <span class="welcome-note">✦ No hay respuestas correctas &nbsp;·&nbsp; 5 preguntas &nbsp;·&nbsp; ~2 min</span>
+    <button class="btn-start" onclick="startTest()">Comenzar</button>
+  </div>
+
+  <!-- Test -->
+  <div class="screen" id="s-test">
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span class="progress-label" id="q-num">Pregunta 1 de 5</span>
+        <span class="progress-steps" id="q-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+    </div>
+    <h2 class="q-text" id="q-text"></h2>
+    <p class="q-sub" id="q-sub"></p>
+    <div class="options" id="opts"></div>
+    <div class="nav">
+      <button class="btn-back" id="btn-back" onclick="goBack()">← Anterior</button>
+      <button class="btn-next" id="btn-next" onclick="goNext()">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="screen" id="s-result">
+    <div id="result-wrap"></div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    text: "Cuando pienso en mi dinero...",
+    sub: "¿Cuál de estas frases te describe mejor?",
+    opts: [
+      { text: "Me siento tranquilo/a y en control", scores: { eq: 3, cl: 1, pr: 0 } },
+      { text: "Evito pensar en ello, prefiero no saber", scores: { eq: 0, cl: 0, pr: 3 } },
+      { text: "Me genera ansiedad o preocupación", scores: { eq: 0, cl: 2, pr: 2 } },
+      { text: "Me motiva y quiero aprender más", scores: { eq: 2, cl: 3, pr: 0 } },
+    ]
+  },
+  {
+    text: "Hablar de dinero me hace sentir...",
+    sub: "",
+    opts: [
+      { text: "Cómodo/a, es un tema normal para mí", scores: { eq: 3, cl: 1, pr: 0 } },
+      { text: "Incómodo/a o avergonzado/a", scores: { eq: 0, cl: 1, pr: 3 } },
+      { text: "Curioso/a y con ganas de mejorar", scores: { eq: 2, cl: 3, pr: 0 } },
+      { text: "Estresado/a o abrumado/a", scores: { eq: 0, cl: 2, pr: 2 } },
+    ]
+  },
+  {
+    text: "Si tuviera un gasto inesperado hoy...",
+    sub: "Como una reparación urgente",
+    opts: [
+      { text: "Lo cubriría sin problema con mis ahorros", scores: { eq: 3, cl: 0, pr: 0 } },
+      { text: "Podría cubrirlo, aunque me afectaría", scores: { eq: 1, cl: 2, pr: 0 } },
+      { text: "Tendría que pedir dinero o usar crédito", scores: { eq: 0, cl: 1, pr: 3 } },
+      { text: "No sé exactamente cómo reaccionaría", scores: { eq: 0, cl: 3, pr: 1 } },
+    ]
+  },
+  {
+    text: "Hoy siento que mis finanzas...",
+    sub: "",
+    opts: [
+      { text: "Van por buen camino, tengo un plan", scores: { eq: 3, cl: 0, pr: 0 } },
+      { text: "Son un tema pendiente que debo atender", scores: { eq: 0, cl: 3, pr: 0 } },
+      { text: "Me generan estrés constante", scores: { eq: 0, cl: 0, pr: 3 } },
+      { text: "No tengo claridad sobre dónde estoy", scores: { eq: 0, cl: 2, pr: 2 } },
+    ]
+  },
+  {
+    text: "Mi relación con el dinero se siente...",
+    sub: "",
+    opts: [
+      { text: "Sana y equilibrada", scores: { eq: 3, cl: 0, pr: 0 } },
+      { text: "En proceso de mejorar", scores: { eq: 1, cl: 3, pr: 0 } },
+      { text: "Complicada o con mucha tensión", scores: { eq: 0, cl: 0, pr: 3 } },
+      { text: "Confusa, no sé cómo describirla", scores: { eq: 0, cl: 2, pr: 1 } },
+    ]
+  }
+];
+
+const results = {
+  eq: {
+    label: "Vas construyendo equilibrio",
+    profile: "Perfil A",
+    color: "#3C3489", bg: "#EEEDFE",
+    desc: "Tienes una relación relativamente sana con el dinero. Sientes cierto control y claridad sobre tu situación. El siguiente paso es fortalecer ese equilibrio con hábitos consistentes y metas a mediano plazo.",
+    barColor: "#7F77DD",
+    insights: [
+      { label: "Tu fortaleza", val: "Control emocional sobre las finanzas" },
+      { label: "Área de oportunidad", val: "Consolidar un plan financiero a largo plazo" },
+      { label: "Siguiente paso sugerido", val: "Define 1 meta de ahorro concreta para este mes" },
+    ]
+  },
+  cl: {
+    label: "Buscas más claridad",
+    profile: "Perfil B",
+    color: "#085041", bg: "#E1F5EE",
+    desc: "Tienes la energía y la motivación para mejorar tu situación financiera, pero sientes que te falta información o estructura. Estás en el momento ideal para empezar a organizarte.",
+    barColor: "#1D9E75",
+    insights: [
+      { label: "Tu fortaleza", val: "Disposición para aprender y mejorar" },
+      { label: "Área de oportunidad", val: "Ganar claridad sobre ingresos, gastos y metas" },
+      { label: "Siguiente paso sugerido", val: "Haz un registro de tus gastos de la semana pasada" },
+    ]
+  },
+  pr: {
+    label: "Te sientes bajo presión financiera",
+    profile: "Perfil C",
+    color: "#993C1D", bg: "#FAECE7",
+    desc: "El dinero es una fuente importante de estrés para ti en este momento. Es válido sentirse así — muchas personas pasan por esto. Lo importante es empezar por un paso pequeño, sin juzgarte.",
+    barColor: "#D85A30",
+    insights: [
+      { label: "Tu fortaleza", val: "Reconocer lo que sientes es el primer paso" },
+      { label: "Área de oportunidad", val: "Reducir la carga emocional asociada al dinero" },
+      { label: "Siguiente paso sugerido", val: "Habla con alguien de confianza o busca apoyo financiero básico" },
+    ]
+  }
+};
+
+let current = 0, answers = [], totals = { eq:0, cl:0, pr:0 };
+
+function startTest() {
+  show('s-test'); renderQ();
+}
+
+function renderQ() {
+  const q = questions[current];
+  const pct = Math.round((current / questions.length) * 100);
+  document.getElementById('q-num').textContent = `Pregunta ${current+1} de ${questions.length}`;
+  document.getElementById('q-pct').textContent = pct + '%';
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-sub').textContent = q.sub;
+
+  const opts = document.getElementById('opts');
+  opts.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn' + (answers[current] === i ? ' selected' : '');
+    btn.textContent = o.text;
+    btn.onclick = () => selectOpt(i);
+    opts.appendChild(btn);
+  });
+
+  document.getElementById('btn-back').style.visibility = current === 0 ? 'hidden' : 'visible';
+  const next = document.getElementById('btn-next');
+  next.textContent = current === questions.length - 1 ? 'Ver mi resultado →' : 'Siguiente →';
+  next.classList.toggle('ready', answers[current] !== undefined);
+}
+
+function selectOpt(i) {
+  answers[current] = i;
+  document.querySelectorAll('.opt-btn').forEach((b, idx) => b.classList.toggle('selected', idx === i));
+  document.getElementById('btn-next').classList.add('ready');
+}
+
+function goNext() {
+  if (answers[current] === undefined) return;
+  const s = questions[current].opts[answers[current]].scores;
+  totals.eq += s.eq; totals.cl += s.cl; totals.pr += s.pr;
+  if (current < questions.length - 1) { current++; renderQ(); }
+  else showResult();
+}
+
+function goBack() {
+  if (current > 0) {
+    const s = questions[current-1].opts[answers[current-1]].scores;
+    totals.eq -= s.eq; totals.cl -= s.cl; totals.pr -= s.pr;
+    current--; renderQ();
+  }
+}
+
+function showResult() {
+  document.getElementById('prog').style.width = '100%';
+  document.getElementById('q-pct').textContent = '100%';
+  const top = Object.entries(totals).sort((a,b) => b[1]-a[1])[0][0];
+  const r = results[top];
+  const max = 15;
+
+  const barRows = ['eq','cl','pr'].map(k => `
+    <div class="bar-row">
+      <span class="bar-name">${results[k].label.split(' ').slice(0,3).join(' ')}</span>
+      <div class="bar-bg"><div class="bar-fill" id="bar-${k}" style="background:${results[k].barColor}"></div></div>
+    </div>`).join('');
+
+  document.getElementById('result-wrap').innerHTML = `
+    <span class="result-profile" style="background:${r.bg};color:${r.color}">${r.profile}</span>
+    <h2 class="result-title">${r.label}</h2>
+    <p class="result-desc">${r.desc}</p>
+    <div class="bars-section">
+      <div class="bars-title">Tu perfil</div>
+      ${barRows}
+    </div>
+    <div class="insights">
+      ${r.insights.map(ins => `<div class="insight"><div class="insight-label">${ins.label}</div><div class="insight-val">${ins.val}</div></div>`).join('')}
+    </div>
+    <button class="btn-retry" onclick="retryTest()">↺ Volver a hacer el test</button>
+  `;
+
+  show('s-result');
+  setTimeout(() => {
+    ['eq','cl','pr'].forEach(k => {
+      const el = document.getElementById('bar-' + k);
+      if (el) el.style.width = Math.round((totals[k]/max)*100) + '%';
+    });
+  }, 100);
+}
+
+function retryTest() {
+  current = 0; answers = []; totals = { eq:0, cl:0, pr:0 };
+  show('s-welcome');
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
